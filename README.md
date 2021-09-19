@@ -15,16 +15,16 @@ Using Terraform and Libvirt provisioner to deploy one Arch and three Debian virt
 
 ### Installing
 
-* Root program directory
-  |-volume #Storage Pool directory
-  |-ssh
-  | |-id_rsa.pub #Public ssh key
-  |-sources #qcow2 cloud-images folder
-  |-tamplets #cloud-init files
-  | |-network_config.tpl
-  | |-user_data.tpl
-  |-variables.tf #Terraform variables
-  |-main.tf #Main Terraform file
+* Root program directory  
+    |-volume #Storage Pool directory  
+    |-ssh  
+    | |-id_rsa.pub #Public ssh key
+    |-sources #qcow2 cloud-images folder
+    |-tamplets #cloud-init files
+    | |-network_config.tpl
+    | |-user_data.tpl
+    |-variables.tf #Terraform variables
+    |-main.tf #Main Terraform file
 * terraform init
 * terraform plan
 * terraform apply -auto-approve
@@ -52,7 +52,7 @@ terraform state
 Contributors names and contact info
 
 ex. Dawid Olesinski 
-ex. [@DomPizzie](https://twitter.com/dompizzie)
+ex. [@twitter_user](https://twitter.com/)
 
 ## Version History
 
