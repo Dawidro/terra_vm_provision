@@ -6,12 +6,14 @@ users:
   - name: vmadmin
     sudo: ALL=(ALL) NOPASSWD:ALL
     ssh_authorized_keys:
-      - ${auth_key}
+      -  ${host_key}
+      -  ${vm_public_key}
+    shell: /bin/bash
 ssh_pwauth: true
 disable_root: false
 chpasswd:
   list: |
-    vmadmin:linux
+    vmadmin: linux
   expire: false
 growpart:
   mode: auto

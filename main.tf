@@ -25,13 +25,30 @@ resource "libvirt_volume" "distro-qcow2" {
   format = "qcow2"
 }
 
+# ssh private key for debug purpose
+resource "tls_private_key" "id_rsa" {
+  algorithm = "RSA"
+}
+
+resource "local_file" "ssh_private_key" {
+    sensitive_content = tls_private_key.id_rsa.private_key_pem
+    filename          = "${path.module}/id_rsa"
+}
+
+resource "local_file" "ssh_public_key" {
+    sensitive_content = tls_private_key.id_rsa.public_key_openssh
+    filename          = "${path.module}/id_rsa.pub"
+}
+
+
 resource "libvirt_cloudinit_disk" "commoninit" { 
   count     = var.hosts
   name      = "commoninit-${var.vm_names[count.index]}.iso"
   pool      = libvirt_pool.vmpool.name
   user_data = templatefile("${path.module}/templates/user_data.tpl", {
       host_name = var.distros[count.index]
-      auth_key  = file("${path.module}/ssh/id_rsa.pub")
+      host_key  = file("${path.module}/ssh/id_rsa.pub")
+      vm_public_key = chomp(tls_private_key.id_rsa.public_key_openssh)
   })  
   
   network_config =   templatefile("${path.module}/templates/network_config.tpl", {
@@ -70,4 +87,23 @@ resource "libvirt_domain" "cloud-domain" {
   disk {
       volume_id = element(libvirt_volume.distro-qcow2.*.id, count.index)
   }
+}
+
+
+resource "null_resource" "local_execution" {
+  provisioner "remote-exec" {
+       connection {
+           user = "vmadmin"
+           host = var.ips[0]
+           type     = "ssh"
+           private_key = file("~/.ssh/id_rsa")
+       }
+
+       inline = [
+           "echo '${tls_private_key.id_rsa.private_key_pem}' > /home/vmadmin/.ssh/id.rsa",
+           "chmod 600 /home/vmadmin/.ssh/id.rsa",
+           "sudo pacman -Syy --noconfirm",
+           "sudo pacman -S ansible --noconfirm" 
+       ]
+   }
 }
