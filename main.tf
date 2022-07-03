@@ -111,7 +111,7 @@ resource "null_resource" "local_execution" {
            "git clone https://github.com/Dawidro/ansible-role-containerd",
            "git clone https://github.com/Dawidro/ufw-role",
            "git clone https://github.com/Dawidro/update_debian",
-           "sudo ansible-galaxy collection install kubernetes.core",
+           "ansible-galaxy collection install kubernetes.core",
            "cd /home/vmadmin/ansible_k8s",
            "ansible all -i hosts -m ping -v",
            "ansible-playbook -i hosts all.yml",
