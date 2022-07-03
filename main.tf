@@ -30,24 +30,24 @@ resource "tls_private_key" "id_rsa" {
   algorithm = "RSA"
 }
 
-resource "local_file" "ssh_private_key" {
-    sensitive_content = tls_private_key.id_rsa.private_key_pem
-    filename          = "${path.module}/id_rsa"
-}
-
-resource "local_file" "ssh_public_key" {
-    sensitive_content = tls_private_key.id_rsa.public_key_openssh
-    filename          = "${path.module}/id_rsa.pub"
-}
+#resource "local_file" "ssh_private_key" {
+#    sensitive_content = tls_private_key.id_rsa.private_key_pem
+#    filename          = "${path.module}/id_rsa"
+#}
+#
+#resource "local_file" "ssh_public_key" {
+#    sensitive_content = tls_private_key.id_rsa.public_key_openssh
+#    filename          = "${path.module}/id_rsa.pub"
+#}
 
 
 resource "libvirt_cloudinit_disk" "commoninit" { 
   count     = var.hosts
-  name      = "commoninit-${var.vm_names[count.index]}.iso"
+  name      = "commoninit-${var.distros[count.index]}.iso"
   pool      = libvirt_pool.vmpool.name
   user_data = templatefile("${path.module}/templates/user_data.tpl", {
-      host_name = var.distros[count.index]
-      host_key  = file("${path.module}/ssh/id_rsa.pub")
+      host_name = var.vm_names[count.index]
+      host_key  = "${file("${path.module}/ssh/id_rsa.pub")}"
       vm_public_key = chomp(tls_private_key.id_rsa.public_key_openssh)
   })  
   
@@ -96,14 +96,28 @@ resource "null_resource" "local_execution" {
            user = "vmadmin"
            host = var.ips[0]
            type     = "ssh"
-           private_key = file("~/.ssh/id_rsa")
+           private_key = "${file("~/.ssh/id_rsa")}"
        }
 
        inline = [
-           "echo '${tls_private_key.id_rsa.private_key_pem}' > /home/vmadmin/.ssh/id.rsa",
+           "echo '${nonsensitive(tls_private_key.id_rsa.private_key_pem)}' > /home/vmadmin/.ssh/id.rsa",
            "chmod 600 /home/vmadmin/.ssh/id.rsa",
-           "sudo pacman -Syy --noconfirm",
-           "sudo pacman -S ansible --noconfirm" 
+           "sudo apt update",
+           "sudo sudo apt-get -y install git",
+           "sudo sudo apt-get -y install ansible",
+           "git clone https://github.com/Dawidro/ansible_k8s",
+           "echo '[defaults]\nhost_key_checking = False\nprivate_key_file = /home/vmadmin/.ssh/id.rsa\nremote_user = vmadmin' >> /home/vmadmin/.ansible.cfg",
+           "cd /home/vmadmin/ansible_k8s/roles",
+           "git clone https://github.com/Dawidro/ansible-role-containerd",
+           "git clone https://github.com/Dawidro/ufw-role",
+           "git clone https://github.com/Dawidro/update_debian",
+           "sudo ansible-galaxy collection install kubernetes.core",
+           "cd /home/vmadmin/ansible_k8s",
+           "ansible all -i hosts -m ping -v",
+           "ansible-playbook -i hosts all.yml",
+           "ansible-playbook -i hosts master.yml",
+           "ansible-playbook -i hosts workers.yml"
        ]
    }
 }
+
