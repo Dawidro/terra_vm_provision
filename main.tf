@@ -106,6 +106,7 @@ resource "null_resource" "local_execution" {
            "sudo sudo apt-get -y install git",
            "sudo sudo apt-get -y install ansible",
            "git clone https://github.com/Dawidro/ansible_k8s",
+           "git clone https://github.com/Dawidro/helm_ansible",
            "echo '[defaults]\nhost_key_checking = False\nprivate_key_file = /home/vmadmin/.ssh/id.rsa\nremote_user = vmadmin' >> /home/vmadmin/.ansible.cfg",
            "cd /home/vmadmin/ansible_k8s/roles",
            "git clone https://github.com/Dawidro/ansible-role-containerd",
